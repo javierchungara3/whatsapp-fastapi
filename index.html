@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi WhatsApp (FastAPI + WebSockets)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #efeae2; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #chat-container { width: 100%; max-width: 500px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px; border-radius: 8px; max-width: 70%; word-wrap: break-word; }
+        .sent { background-color: #d9fdd3; align-self: flex-end; }
+        .received { background-color: #ffffff; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
+        #input-container { display: flex; padding: 10px; background: #f0f2f5; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; padding-left: 15px; }
+        button { background-color: #00a884; color: white; border: none; padding: 10px 20px; margin-left: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="chat-container">
+        <h3 style="text-align: center; color: #54656f; margin: 15px 0;">Mi WhatsApp (FastAPI + WebSockets)</h3>
+        <div id="messages"></div>
+        <div id="input-container">
+            <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        // Dirección corregida de tu servidor Render
+        const SERVER_URL = "://onrender.com";
+        
+        // Protocolo seguro wss:// para WebSockets en producción
+        const ws = new WebSocket(`wss://${SERVER_URL}/ws`);
+
+        ws.onmessage = function(event) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message received';
+            messageElement.textContent = event.data;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        ws.onopen = function() {
+            console.log("Conectado al servidor de chat.");
+        };
+
+        ws.onerror = function(error) {
+            console.error("Error en WebSocket:", error);
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            if (input.value.trim() !== '') {
+                // Enviar mensaje al backend
+                ws.send(input.value);
+
+                // Mostrarlo en nuestra pantalla como enviado
+                const messagesDiv = document.getElementById('messages');
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message sent';
+                messageElement.textContent = input.value;
+                messagesDiv.appendChild(messageElement);
+                
+                input.value = '';
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
